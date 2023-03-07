@@ -40,24 +40,53 @@ contract UserManagement {
         string pp;
         string bio;
     }
-    event UserRegistered(uint256 UID,address wallet, string name, string email);
-    event UserEdited(uint256 UID,address wallet, string name, string email);
-    event UserDeleted(uint256 UID,address wallet, string name, string email);
+    event UserRegistered(uint256 UID, address indexed wallet, string name, string email);
+    event UserUpdated(uint256 UID, address indexed wallet, string name, string email);
+    event UserDeleted(uint256 UID, address indexed wallet, string name, string email);
 
-    modifier isUserExist(){
-        User storage user = users[msg.sender];
+    modifier userExist(address wallet){ 
+        User storage user = users[wallet];
         require(bytes(user.name).length>0,"User: user not find");
+        
         _;
     }
-    modifier validateUserInfo(string name,string email,string password,string pp,string bio){
+    modifier userNotExist(){
+        User storage user = users[msg.sender];
+        require(bytes(user.name).length==0,"User: user already registered");
+        _;
+    }
+    modifier validateUserInfo(string memory name,string memory email,string memory password,string memory pp,string memory bio){
         require(bytes(name).length>0,"User: name requried");
-        require(bytes(name).length>0,"User: email requried");
-        require(bytes(name).length>0,"User: password requried");
-        require(bytes(name).length>0,"User: pp requried");
-        require(bytes(name).length>0,"User: bio requried");
+        require(bytes(email).length>0,"User: email requried");
+        require(bytes(password).length>0,"User: password requried");
+        require(bytes(pp).length>0,"User: pp requried");
+        require(bytes(bio).length>0,"User: bio requried");
         _;
     }
-    function registerUser(string name,string email,string password,string pp,string bio) public returns(uint256){
-        // your code goes here .
+    function registerUser(string memory _name,string memory _email,string memory _password,string memory _pp,string memory _bio) public validateUserInfo(_name,_email,_password,_pp,_bio) userNotExist returns(uint256){
+        userCount++;
+        User memory newUser =  User(userCount,msg.sender, _name, _email,_password, _pp, _bio );
+        users[msg.sender]=newUser;
+        emit UserRegistered(userCount, msg.sender, _name, _email);
+        return userCount;
+    }
+    function updateProfile(string memory _name, string memory _email, string memory _password, string memory _pp, string memory _bio) public userExist(msg.sender) validateUserInfo(_name, _email, _password, _pp, _bio) returns (bool) {
+        User storage existingUser = users[msg.sender];
+        existingUser.name = _name;
+        existingUser.email = _email;
+        existingUser.password = _password;
+        existingUser.pp = _pp;
+        existingUser.bio = _bio;
+        emit UserUpdated(existingUser.UID, msg.sender, existingUser.name, existingUser.email);
+        return true;
+    }
+
+    function deleteAccount() public userExist(msg.sender) returns(bool){
+        delete users[msg.sender];
+        return true;
+    }
+    function getUser(address _wallet) public view userExist(_wallet) returns( User memory ){
+        User storage user= users[_wallet];
+        return user;
     }
 }

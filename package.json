@@ -5,6 +5,8 @@
     "hardhat": "^2.13.0"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.8.2"
+    "@openzeppelin/contracts": "^4.8.2",
+    "nodemon": "^2.0.21",
+    "solc": "^0.8.19"
   }
 }
